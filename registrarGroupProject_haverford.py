@@ -312,7 +312,7 @@ if __name__=='__main__':
             zip_prefs_prefsRank.sort()
             student.prefs = [prefs for prefsRank, prefs in zip_prefs_prefsRank]
 
-        # Now assign only the first student.prefs, pop from list and move to next student.
+        # Now assign only the first student.prefs, pop prefs from list and move to next student.
         for student in students:
             busyPeriods = []
             for course in map(lambda p: courseLookup[p], student.prefs):
