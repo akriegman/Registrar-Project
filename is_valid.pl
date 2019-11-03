@@ -88,6 +88,7 @@ while (<SCHED>) {
 				if ($origCourseTeacher{$course} != $teacher) {
 					print "Course $course does not have the correct teacher.\n";
 					print "Line:$_\n";
+					print "Teacher should be: $origCourseTeacher{$course}\n";
 					exit 1;
 				}
 
@@ -158,7 +159,6 @@ sub readConstraints {
 
 	my $file = $_[0];
 	open (CONSTRAINTS, $file) || die "Can't open file: $file\n";
-
 	my $isroom = 0;
 	my $isclass = 0;
 	while (<CONSTRAINTS>) {

@@ -36,12 +36,17 @@ class Course:
         self.students = []
         self.period = 0
         self.room = 0
+        #start time field
+        #end time field
 
     def __str__(self):
         return str(self.id) + "\t" + str(self.room) + "\t" + str(self.teacher) + "\t" + str(self.period) #+ "\t" + str(self.students)
 
     def __repr__(self):
         return str(self)
+
+    #does overlap method
+    # def doesOverlap(self, otherCourse)
 
 class Period:
     """A period is a list of the classes in that period."""
@@ -57,6 +62,15 @@ class Period:
         return str(self)
 
 
+def calculateScore(students):
+    score = 0
+    maxScore = 0
+    for student in students:
+        maxScore += len(student.prefs)
+        for course in student.coursesAssigned:
+            if course.id in student.prefs:
+                score += 1
+    return score, maxScore
 
 
 
@@ -201,6 +215,14 @@ if __name__=='__main__':
 
     #That could be all!
     # What do we write to the output file?
+
+
+    print("####")
+    score, maxScore = calculateScore(students)
+    print("Score is: {}/{}".format(score, maxScore))
+    print("####")
+
+
     with open(scheduleOutputPath, 'w') as outputFile:
         outputFile.write("Course\tRoom\tTeacher\tTime\tStudents\n")
         for course in courses:
