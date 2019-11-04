@@ -67,7 +67,7 @@ class Period:
         self.days = days            #example: (False, True, False, True, False)
 
     def __str__(self):
-        return str(self.id) + " " + str(self.courses)
+        return str(self.id) + ' s:{}'.format(self.startTime) + ' e:{}'.format(self.endTime) + ' C:{}'.format(str(self.courses)) + "\n"
 
     def __repr__(self):
         return str(self)
@@ -147,10 +147,10 @@ if __name__=='__main__':
         if splitUpLine[0] == "Rooms":
             done = True
         else:
-            startTime = float((splitUpLine[1]).split(":")[0])
+            startTime = float((splitUpLine[1]).split(":")[0]) + (float((splitUpLine[1]).split(":")[1])*(1/60))
             if splitUpLine[2] == "PM":
                  startTime += 12.0
-            endTime = float((splitUpLine[3].split(":"))[0])
+            endTime = float((splitUpLine[3].split(":"))[0]) + (float((splitUpLine[3]).split(":")[1])*(1/60))
             if splitUpLine[4] == "PM":
                  endTime += 12.0
             periodDays = badStringsToDays[splitUpLine[5]]
@@ -228,19 +228,24 @@ if __name__=='__main__':
 
     ######## Extensions processing ########
 
-    ## one extension ##
+    ## Deadzone extension ##
     if extension == 1:
         print("\n\nDeadzone\n\n")
-        dz_start = 0
-        dz_end   = 23
+        dz_start = 12
+        dz_end   = 18
         days = (1,1,1,1,1)
 
-        deadzone = Period(-1, dz_start, dz_end, days)
+        deadzone = Period(-1, dz_start, dz_end, days) # def __init__(self, id, startTime, endTime, days):
 
+        print("Periods before removing deadzone conflicts:", len(periods))
+        newPeriods = periods.copy()
         for p in periods:
             if p.overlaps_with(deadzone):
-                periods.remove(p)
+                newPeriods.remove(p)
                 del periodLookup[p.id]
+        periods = newPeriods
+        print("Periods after removing deadzone conflicts:", len(periods))
+
 
     if extension == 2:
         length = 1
@@ -267,8 +272,8 @@ if __name__=='__main__':
           # Make a dictionary of conflict costs of assigning course to each period
           cost = {}
           for period in periods:
-              fancyConflictScore = [sum([conflicts[course.id, c.id] for c in periodLookup[p].courses]) for p in period.overlaps]
-              cost[period.id] = sum(fancyConflictScore)
+              conflictsInOverlappingPeriods = [sum([conflicts[course.id, c.id] for c in periodLookup[p].courses]) for p in period.overlaps]
+              cost[period.id] = sum(conflictsInOverlappingPeriods)
 
           periods.sort(key = lambda p: cost[p.id])
 
@@ -360,6 +365,10 @@ if __name__=='__main__':
     # for s in students:
     # for c in courses:
     #     print(c.students)
+
+    print("Num courses: %i" % len(courses))
+    print("Num rooms: %i" % len(rooms))
+    print("Num students: %i" % len(students))
 
     print("####")
     score, maxScore = calculateScore(students)
