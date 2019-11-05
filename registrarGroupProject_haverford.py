@@ -11,6 +11,7 @@ class Student:
         self.coursesAssigned = []
         # Extension 3
         # self.prefsRank = []
+        # self.busyPeriods = []
         # Extension 4
         self.classYear = random.randint(1,5)
 
@@ -142,7 +143,15 @@ if __name__=='__main__':
     "TH" : (False, False, False, True, False),
     "WF" : (False, False, True, False, True)}
 
-    daysToBadStrings = {v:k for k,v in badStringsToDays.items()}
+    dayToIndex = {
+    "M" : 0,
+    "T" : 1,
+    "W" : 2,
+    "H" : 3,
+    "F" : 4
+    }
+
+    # daysToBadStrings = {v:k for k,v in badStringsToDays.items()}
 
     #parsing periods
     #Here's where we read in start time and end time of each period and which days it's on
@@ -161,7 +170,11 @@ if __name__=='__main__':
             endTime = float((splitUpLine[3].split(":"))[0]) + (float((splitUpLine[3]).split(":")[1])*(1/60))
             if splitUpLine[4] == "PM":
                  endTime += 12.0
-            periodDays = badStringsToDays[splitUpLine[5]]
+            # periodDays = badStringsToDays[splitUpLine[5]]
+            periodDays = [False for i in range(5)]
+            for day in splitUpLine[5:]:
+                periodDays[dayToIndex[day]] = True
+
             periods.append(Period(periodID, startTime, endTime, periodDays))
         periodID += 1
 
@@ -233,6 +246,12 @@ if __name__=='__main__':
     rooms.sort(key = lambda r: -r.capacity)
 
 
+    print("\n")
+    print("Num courses: %i" % len(courses))
+    print("Num rooms: %i" % len(rooms))
+    print("Num students: %i" % len(students))
+    print("\n")
+
 
     ######## Extensions processing ########
 
@@ -252,16 +271,20 @@ if __name__=='__main__':
                 newPeriods.remove(p)
                 del periodLookup[p.id]
         periods = newPeriods
-        print(len(periods))
+        print("Periods after removing deadzone conflicts:", len(periods))
+        print("#############################\n\n")
 
 
     if extension == 2:
+        print("\n#### Office Hour Extension: ####")
+
         length = 1
-        numeDays = 1
+        numDays = 2
         sep = lambda x: (x,x+length)
-        tfList = [True if i < 2 else False for i in range(5)]
-        officeHours = {t:Period(-t, *sep(random.randomint(8, 20)), random.sample(tfList, k=5)) for t in teachers}
-        # We need to initialize teachers somewhere above here.
+        tfList = [True if i < numDays else False for i in range(5)]
+        officeHours = {t:Period(-t, *sep(random.randint(8, 20)), random.sample(tfList, k=5)) for t in teachers}
+
+
 
     ######## Assign each class in classes to a time slot ########
 
@@ -318,29 +341,34 @@ if __name__=='__main__':
     ###### EXTENSIONS 3 & 4 #####
     '''
     ### Student Prefs Rank
-    if extension == 3:   NOT DONE
-        # Sorts students prefs by prefsRank
+    if extension == 3:
+        print("\n\n#### Priority by Student Preferences Rank Extension: ####")
+        # Sorts student.prefs by student.prefsRank
         for student in students:
             zip_prefs_prefsRank = zip(student.prefsRank, student.prefs)
             zip_prefs_prefsRank.sort()
             student.prefs = [prefs for prefsRank, prefs in zip_prefs_prefsRank]
 
         # Now assign only the first student.prefs, pop prefs from list and move to next student.
-        for student in students:
-            busyPeriods = []
-            for course in map(lambda p: courseLookup[p], student.prefs):
-                if course.period == 0:
+        for i in range(1,8):
+            for student in students:
+                try:
+                    course = map(i, student.prefs):
+                    if course.period == 0:
+                        continue
+                    room = roomLookup[course.room] # room of c
+                    period = course.period # period of c
+                    if ((len(course.students) < room.capacity) and (not (period in busyPeriods))):
+                        course.students.append(student)         # for Course object
+                        student.coursesAssigned.append(course)  # for Student object
+                        student.busyPeriods.append(course.period)
+                except:
                     continue
-                room = roomLookup[course.room] # room of c
-                period = course.period # period of c
-                if ((len(course.students) < room.capacity) and (not (period in busyPeriods))):
-                    course.students.append(student)         # for Course object
-                    student.coursesAssigned.append(course)  # for Student object
-                    busyPeriods.append(course.period)
     # '''
 
     ### Student Assignment by Class Year
     if extension == 4:
+        print("\n\n#### Priority by Seniority Extension: ####")
         # Reorder students by self.classYear
         studentsByClassYear = sorted(students, key = lambda stud: stud.classYear, reverse=True)
 
