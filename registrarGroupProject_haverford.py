@@ -102,6 +102,14 @@ if __name__=='__main__':
             extension      = int(sys.argv[4])
         except IndexError:
             extension      = 0
+        try:
+            extArg1 = int(sys.argv[5])
+        except IndexError:
+            extArg1 = 0
+        try:
+            extArg2 = int(sys.argv[6])
+        except IndexError:
+            extArg2 = 0
 
     except IndexError:
         print('\nERROR: Argument missmatch\n'
@@ -230,21 +238,21 @@ if __name__=='__main__':
 
     ## Deadzone extension ##
     if extension == 1:
-        print("\n\nDeadzone\n\n")
-        dz_start = 12
-        dz_end   = 18
+        # print("\n\nDeadzone\n\n")
+        dz_start = extArg1
+        dz_end   = extArg2
         days = (1,1,1,1,1)
 
         deadzone = Period(-1, dz_start, dz_end, days) # def __init__(self, id, startTime, endTime, days):
 
-        print("Periods before removing deadzone conflicts:", len(periods))
+        # print("Periods before removing deadzone conflicts:", len(periods))
         newPeriods = periods.copy()
         for p in periods:
             if p.overlaps_with(deadzone):
                 newPeriods.remove(p)
                 del periodLookup[p.id]
         periods = newPeriods
-        print("Periods after removing deadzone conflicts:", len(periods))
+        print(len(periods))
 
 
     if extension == 2:
@@ -366,14 +374,16 @@ if __name__=='__main__':
     # for c in courses:
     #     print(c.students)
 
-    print("Num courses: %i" % len(courses))
-    print("Num rooms: %i" % len(rooms))
-    print("Num students: %i" % len(students))
-
-    print("####")
+    # print("Num courses: %i" % len(courses))
+    # print("Num rooms: %i" % len(rooms))
+    # print("Num students: %i" % len(students))
+    #
+    # print("####")
     score, maxScore = calculateScore(students)
-    print("Score is: {}/{}".format(score, maxScore))
-    print("####")
+    # print("Score is: {}/{}".format(score, maxScore))
+    # print("####")
+
+    print("{}/{}".format(score, maxScore))
 
     #That could be all!
     # What do we write to the output file?
