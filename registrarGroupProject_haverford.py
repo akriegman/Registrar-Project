@@ -235,13 +235,23 @@ if __name__=='__main__':
     prefsFile = open(prefsPath,"r+")
     numStudents = int(((prefsFile.readline()).split())[1])      #This should take the numStudents from the prefsFile
     students = []
-    for i in range(0,numStudents):
+    for i in range(numStudents):
         ourLine = prefsFile.readline()
         listOfOurLine = ourLine.split()
         desiredCourses = list(map(int, listOfOurLine[1:len(listOfOurLine)-1]))
         desiredCourses = [c for c in desiredCourses if c in courseLookup]
         students.append(Student(int(listOfOurLine[0]), desiredCourses))
 
+    # if extension == 4:
+    # for i in range(numStudents):
+    #     if float(i) / numStudents < 1/4:
+    #         students[i].classYear = 1
+    #     elif 1/4 <= float(i) / numStudents < 1/2:
+    #         students[i].classYear = 2
+    #     elif 1/2 <= float(i) / numStudents < 3/4:
+    #         students[i].classYear = 3
+    #     else:
+    #         students[i].classYear = 4
 
     # Preprocessing: create conflict matrix
     conflicts = {}
@@ -366,7 +376,7 @@ if __name__=='__main__':
             student.prefs = [prefs for prefsRank, prefs in zip_prefs_prefsRank]
 
         # Now assign only the first student.prefs, pop prefs from list and move to next student.
-        for i in range(1,8):
+        for i in range(1,8): # 7 is the max number of selected courses
             for student in students:
                 try:
                     course = map(i, student.prefs):
@@ -388,6 +398,8 @@ if __name__=='__main__':
         # Reorder students by self.classYear
         students = sorted(students, key = lambda stud: stud.classYear, reverse=True)
         # print(students)
+    # else:
+    #     random.shuffle(students)
 
     for student in students:
         busyPeriods = []
@@ -407,12 +419,12 @@ if __name__=='__main__':
 
     print("####")
     score, maxScore, scoresByYear, maxScoresByYear = calculateScore(students)
-    print("Senior score is:    {}/{}".format(scoresByYear[4], maxScoresByYear[4]))
-    print("Junior score is:    {}/{}".format(scoresByYear[3], maxScoresByYear[3]))
-    print("Sophomore score is: {}/{}".format(scoresByYear[2], maxScoresByYear[2]))
-    print("Freshman score is:  {}/{}".format(scoresByYear[1], maxScoresByYear[1]))
-    # print('\n')
-    print("TOTAL score is:     {}/{}".format(score, maxScore))
+    print("Senior score is:    {}/{} = {}%".format(scoresByYear[4], maxScoresByYear[4], "%.1f" % (scoresByYear[4]/maxScoresByYear[4] * 100)))
+    print("Junior score is:    {}/{} = {}%".format(scoresByYear[3], maxScoresByYear[3], "%.1f" % (scoresByYear[3]/maxScoresByYear[3] * 100)))
+    print("Sophomore score is: {}/{} = {}%".format(scoresByYear[2], maxScoresByYear[2], "%.1f" % (scoresByYear[2]/maxScoresByYear[2] * 100)))
+    print("Freshman score is:  {}/{} = {}%".format(scoresByYear[1], maxScoresByYear[1], "%.1f" % (scoresByYear[1]/maxScoresByYear[1] * 100)))
+    print('')
+    print("TOTAL score is:     {}/{} = {}%".format(score, maxScore, "%.1f" % (score/maxScore * 100)))
     print("####")
 
     #That could be all!
