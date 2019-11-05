@@ -2,6 +2,7 @@
 import itertools
 import sys
 import random
+import argparse
 
 #class declarations
 class Student:
@@ -110,6 +111,12 @@ def calculateScore(students):
 
 
 if __name__=='__main__':
+    # parser = argparse.ArgumentParser()
+    #
+    # parser.add_argument("constraintsPath")
+    # parser.add_argument("prefsPath")
+    # parser.add_argument("scheduleOutputPath")
+    # parser.add_argument
 
     try:
         constraintsPath    = sys.argv[1]
@@ -120,11 +127,11 @@ if __name__=='__main__':
         except IndexError:
             extension      = 0
         try:
-            extArg1 = int(sys.argv[5])
+            extArg1 = float(sys.argv[5])
         except IndexError:
             extArg1 = 0
         try:
-            extArg2 = int(sys.argv[6])
+            extArg2 = float(sys.argv[6])
         except IndexError:
             extArg2 = 0
 
