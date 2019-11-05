@@ -9,22 +9,23 @@ class Student:
         self.id = id
         self.prefs = prefs
         self.coursesAssigned = []
-        # Extension 3
-        # self.prefsRank = []
-        # self.busyPeriods = []
-        # Extension 4
-        self.classYear = random.randint(1,5)
+        # For Extension 3:
+        self.prefsRank = []
+        self.busyPeriods = []
+        # For Extension 4:
+        self.classYear = random.randint(1,4)
 
     def __str__(self):
-        return str(self.id)# + " " + str(self.prefs[0]) + " " + str(self.prefs[1]) + " " + str(self.prefs[2]) + " " + str(self.prefs[3])
+        return str(self.id) + ' year:{}\n'.format(self.classYear)
+        # + " " + str(self.prefs[0]) + " " + str(self.prefs[1]) + " " + str(self.prefs[2]) + " " + str(self.prefs[3])
 
     def __repr__(self):
         return str(self)
 
-    # Extension 3
-    # def prefsRank(self):
-    #     classNums = len(self.prefsRank)
-    #     self.classRank = random.sample(range(1,classNums + 1), classNums) # 1-4 list corresponding to prefs.
+    # For Extension 3
+    def prefsRank(self):
+        classNums = len(self.prefsRank)
+        self.classRank = random.sample(range(1,classNums + 1), classNums) # 1-4 list corresponding to prefs.
 
 
 
@@ -81,14 +82,29 @@ class Period:
 
 
 def calculateScore(students):
-    score = 0
-    maxScore = 0
+    scoresByYear = {
+        1 : 0,
+        2 : 0,
+        3 : 0,
+        4 : 0
+    }
+    maxScoresByYear = {
+        1 : 0,
+        2 : 0,
+        3 : 0,
+        4 : 0
+    }
+
     for student in students:
-        maxScore += len(student.prefs)
+        maxScoresByYear[student.classYear] += len(student.prefs)
         for course in student.coursesAssigned:
             if course.id in student.prefs:
-                score += 1
-    return score, maxScore
+                scoresByYear[student.classYear] += 1
+
+    score = sum(scoresByYear.values())
+    maxScore = sum(maxScoresByYear.values())
+
+    return score, maxScore, scoresByYear, maxScoresByYear
 
 
 
@@ -360,40 +376,32 @@ if __name__=='__main__':
 
     ### Student Assignment by Class Year
     if extension == 4:
-        print("\n\n#### Priority by Seniority Extension: ####")
+        print("\n#### Priority by Seniority Extension: ####")
         # Reorder students by self.classYear
-        studentsByClassYear = sorted(students, key = lambda stud: stud.classYear, reverse=True)
+        students = sorted(students, key = lambda stud: stud.classYear, reverse=True)
+        # print(students)
 
-        # the the same as the original
-        for student in studentsByClassYear:
-            busyPeriods = []
-            for course in map(lambda p: courseLookup[p], student.prefs):
-                if course.period == 0:
-                    continue
-                room = roomLookup[course.room] # room of c
-                period = course.period # period of c
-                if ((len(course.students) < room.capacity) and (not (period in busyPeriods))):
-                    course.students.append(student)         # for Course object
-                    student.coursesAssigned.append(course)  # for Student object
-                    busyPeriods.append(course.period)
-
-    else:             # The below is the original
-        for student in students:
-            busyPeriods = []
-            for course in map(lambda p: courseLookup[p], student.prefs):
-                if course.period == 0:
-                    continue
-                room = roomLookup[course.room] # room of c
-                period = course.period # period of c
-                if ((len(course.students) < room.capacity) and (not (period in busyPeriods))):
-                    course.students.append(student)         # for Course object
-                    student.coursesAssigned.append(course)  # for Student object
-                    busyPeriods.append(course.period)
+    for student in students:
+        busyPeriods = []
+        for course in map(lambda p: courseLookup[p], student.prefs):
+            if course.period == 0:
+                continue
+            room = roomLookup[course.room] # room of c
+            period = course.period # period of c
+            if ((len(course.students) < room.capacity) and (not (period in busyPeriods))):
+                course.students.append(student)         # for Course object
+                student.coursesAssigned.append(course)  # for Student object
+                busyPeriods.append(course.period)
 
 
     print("####")
-    score, maxScore = calculateScore(students)
-    print("Score is: {}/{}".format(score, maxScore))
+    score, maxScore, scoresByYear, maxScoresByYear = calculateScore(students)
+    print("Senior score is:    {}/{}".format(scoresByYear[4], maxScoresByYear[4]))
+    print("Junior score is:    {}/{}".format(scoresByYear[3], maxScoresByYear[3]))
+    print("Sophomore score is: {}/{}".format(scoresByYear[2], maxScoresByYear[2]))
+    print("Freshman score is:  {}/{}".format(scoresByYear[1], maxScoresByYear[1]))
+    # print('\n')
+    print("TOTAL score is:     {}/{}".format(score, maxScore))
     print("####")
 
     #That could be all!
