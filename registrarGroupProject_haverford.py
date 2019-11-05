@@ -119,6 +119,14 @@ if __name__=='__main__':
             extension      = int(sys.argv[4])
         except IndexError:
             extension      = 0
+        try:
+            extArg1 = int(sys.argv[5])
+        except IndexError:
+            extArg1 = 0
+        try:
+            extArg2 = int(sys.argv[6])
+        except IndexError:
+            extArg2 = 0
 
     except IndexError:
         print('\nERROR: Argument missmatch\n'
@@ -265,14 +273,14 @@ if __name__=='__main__':
 
     ## Deadzone extension ##
     if extension == 1:
-        print("\n#### Deadzone Extension: ####")
-        dz_start = 12
-        dz_end   = 14
+        # print("\n\nDeadzone\n\n")
+        dz_start = extArg1
+        dz_end   = extArg2
         days = (1,1,1,1,1)
 
         deadzone = Period(-1, dz_start, dz_end, days) # def __init__(self, id, startTime, endTime, days):
 
-        print("Periods before removing deadzone conflicts:", len(periods))
+        # print("Periods before removing deadzone conflicts:", len(periods))
         newPeriods = periods.copy()
         for p in periods:
             if p.overlaps_with(deadzone):
@@ -393,6 +401,9 @@ if __name__=='__main__':
                 student.coursesAssigned.append(course)  # for Student object
                 busyPeriods.append(course.period)
 
+    # for s in students:
+    # for c in courses:
+    #     print(c.students)
 
     print("####")
     score, maxScore, scoresByYear, maxScoresByYear = calculateScore(students)
