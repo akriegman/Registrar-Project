@@ -217,10 +217,10 @@ if __name__=='__main__':
     # What do we write to the output file?
 
 
-    print("####")
+    # print("####")
     score, maxScore = calculateScore(students)
     print("Score is: {}/{}".format(score, maxScore))
-    print("####")
+    # print("####")
 
 
     with open(scheduleOutputPath, 'w') as outputFile:
