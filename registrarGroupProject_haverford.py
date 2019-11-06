@@ -36,6 +36,7 @@ class Room:
     def __init__(self, id, capacity):
         self.id = id
         self.capacity = capacity
+        self.department = 0
 
     def __str__(self):
         return str(self.id) + " " + str(self.capacity)
@@ -51,6 +52,7 @@ class Course:
         self.students = []
         self.period = 0
         self.room = 0
+        self.department = 0
 
     def __str__(self):
         return str(self.id) + "\t" + str(self.room) + "\t" + str(self.teacher) + "\t" + str(self.period) #+ "\t" + str(self.students)
@@ -279,11 +281,11 @@ if __name__=='__main__':
     rooms.sort(key = lambda r: -r.capacity)
 
 
-    print("\n")
-    print("Num courses: %i" % len(courses))
-    print("Num rooms: %i" % len(rooms))
-    print("Num students: %i" % len(students))
-    print("\n")
+    # print("\n")
+    # print("Num courses: %i" % len(courses))
+    # print("Num rooms: %i" % len(rooms))
+    # print("Num students: %i" % len(students))
+    # print("\n")
 
 
     ######## Extensions processing ########
@@ -309,14 +311,21 @@ if __name__=='__main__':
 
 
     if extension == 2:
-        print("\n#### Office Hour Extension: ####")
+        # print("\n#### Office Hour Extension: ####")
 
-        length = 1
-        numDays = 2
+        length = extArg1
+        numDays = extArg2
+        print(length*numDays)
         sep = lambda x: (x,x+length)
         tfList = [True if i < numDays else False for i in range(5)]
-        officeHours = {t:Period(-t, *sep(random.randint(8, 20)), random.sample(tfList, k=5)) for t in teachers}
+        officeHours = {t:Period(-t, *sep(random.randint(8, 10)), random.sample(tfList, k=5)) for t in teachers}
 
+    if extension == 5:
+        numDepartments = 20
+        for course in courses:
+            course.department = random.randint(1, numDepartments)
+        for room in rooms:
+            room.department = random.randint(1, numDepartments)
 
 
     ######## Assign each class in classes to a time slot ########
@@ -353,13 +362,33 @@ if __name__=='__main__':
                   p.courses += [course]
                   break
 
-
-    for period in periods:
-        bigC = period.courses       #The list of classes in the period
-        for i in range(len(bigC)):
-            room = rooms[i].id
-            course = courseLookup[bigC[i].id]
-            course.room = room
+    if extension == 5:
+        buildings = {i:[] for i in range(1, numDepartments + 1)}
+        for room in rooms:
+            buildings[room.department].append(room)
+        for period in periods:
+            overflow = []
+            bigC = period.courses
+            remainingRooms = rooms.copy()
+            indices = {i:0 for i in range(1, numDepartments + 1)}
+            for i in range(len(bigC)):
+                try:
+                    bigC[i].room = buildings[bigC[i].department][indices[bigC[i].department]].id
+                    remainingRooms.remove(buildings[bigC[i].department][indices[bigC[i].department]])
+                    indices[bigC[i].department] += 1
+                except IndexError:
+                    overflow.append(bigC[i])
+            for i in range(len(overflow)):
+                room = remainingRooms[i].id
+                course = overflow[i]
+                course.room = room
+    else:
+        for period in periods:
+            bigC = period.courses       #The list of classes in the period
+            for i in range(len(bigC)):
+                room = rooms[i].id
+                course = courseLookup[bigC[i].id]
+                course.room = room
 
     # print(periods)
 
@@ -423,16 +452,16 @@ if __name__=='__main__':
     # for s in students:
     # for c in courses:
     #     print(c.students)
-
-    print("####")
-    score, maxScore, scoresByYear, maxScoresByYear = calculateScore(students)
-    print("Senior score is:    {}/{} = {}%".format(scoresByYear[4], maxScoresByYear[4], "%.1f" % (scoresByYear[4]/maxScoresByYear[4] * 100)))
-    print("Junior score is:    {}/{} = {}%".format(scoresByYear[3], maxScoresByYear[3], "%.1f" % (scoresByYear[3]/maxScoresByYear[3] * 100)))
-    print("Sophomore score is: {}/{} = {}%".format(scoresByYear[2], maxScoresByYear[2], "%.1f" % (scoresByYear[2]/maxScoresByYear[2] * 100)))
-    print("Freshman score is:  {}/{} = {}%".format(scoresByYear[1], maxScoresByYear[1], "%.1f" % (scoresByYear[1]/maxScoresByYear[1] * 100)))
-    print('')
-    print("TOTAL score is:     {}/{} = {}%".format(score, maxScore, "%.1f" % (score/maxScore * 100)))
-    print("####")
+    if extension == 4:
+        print("####")
+        score, maxScore, scoresByYear, maxScoresByYear = calculateScore(students)
+        print("Senior score is:    {}/{} = {}%".format(scoresByYear[4], maxScoresByYear[4], "%.1f" % (scoresByYear[4]/maxScoresByYear[4] * 100)))
+        print("Junior score is:    {}/{} = {}%".format(scoresByYear[3], maxScoresByYear[3], "%.1f" % (scoresByYear[3]/maxScoresByYear[3] * 100)))
+        print("Sophomore score is: {}/{} = {}%".format(scoresByYear[2], maxScoresByYear[2], "%.1f" % (scoresByYear[2]/maxScoresByYear[2] * 100)))
+        print("Freshman score is:  {}/{} = {}%".format(scoresByYear[1], maxScoresByYear[1], "%.1f" % (scoresByYear[1]/maxScoresByYear[1] * 100)))
+        print('')
+        print("TOTAL score is:     {}/{} = {}%".format(score, maxScore, "%.1f" % (score/maxScore * 100)))
+        print("####")
 
     #That could be all!
     # What do we write to the output file?
