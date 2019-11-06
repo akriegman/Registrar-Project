@@ -246,11 +246,11 @@ if __name__=='__main__':
     rooms.sort(key = lambda r: -r.capacity)
 
 
-    print("\n")
-    print("Num courses: %i" % len(courses))
-    print("Num rooms: %i" % len(rooms))
-    print("Num students: %i" % len(students))
-    print("\n")
+    # print("\n")
+    # print("Num courses: %i" % len(courses))
+    # print("Num rooms: %i" % len(rooms))
+    # print("Num students: %i" % len(students))
+    # print("\n")
 
 
     ######## Extensions processing ########
@@ -276,13 +276,14 @@ if __name__=='__main__':
 
 
     if extension == 2:
-        print("\n#### Office Hour Extension: ####")
+        # print("\n#### Office Hour Extension: ####")
 
-        length = 1
-        numDays = 2
+        length = extArg1
+        numDays = extArg2
+        print(length*numDays)
         sep = lambda x: (x,x+length)
         tfList = [True if i < numDays else False for i in range(5)]
-        officeHours = {t:Period(-t, *sep(random.randint(8, 20)), random.sample(tfList, k=5)) for t in teachers}
+        officeHours = {t:Period(-t, *sep(random.randint(8, 10)), random.sample(tfList, k=5)) for t in teachers}
 
 
 
@@ -411,7 +412,7 @@ if __name__=='__main__':
     # print("Score is: {}/{}".format(score, maxScore))
     # print("####")
 
-    print("{}/{}".format(score, maxScore))
+    print(score/maxScore)
 
     #That could be all!
     # What do we write to the output file?
