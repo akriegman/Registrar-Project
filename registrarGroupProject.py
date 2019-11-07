@@ -219,7 +219,7 @@ if __name__=='__main__':
 
     # print("####")
     score, maxScore = calculateScore(students)
-    print("Score is: {}/{}".format(score, maxScore))
+    print("Score is: {}/{} = {}%\n".format(score, maxScore, "%.1f" % (score/maxScore * 100)))
     # print("####")
 
 
