@@ -9,9 +9,12 @@ class Student:
     def __init__(self, id, prefs):
         self.id = id
         self.prefs = prefs
+
+        if extension == 3:
+            # Shuffle the courses just in case. Then we can treat their order as a ranked preference list
+            random.shuffle(self.prefs)
+
         self.coursesAssigned = []
-        # For Extension 3:
-        self.prefsRank = []
         self.busyPeriods = []
         # For Extension 4:
         self.classYear = random.randint(1,4)
@@ -23,12 +26,6 @@ class Student:
     def __repr__(self):
         return str(self)
 
-    # For Extension 3
-    def prefsRank(self):
-        classNums = len(self.prefsRank)
-        self.classRank = random.sample(range(1,classNums + 1), classNums) # 1-4 list corresponding to prefs.
-
-
 
 class Room:
     """These objects represent each room. Its field is the capacity of the room"""
@@ -36,6 +33,7 @@ class Room:
     def __init__(self, id, capacity):
         self.id = id
         self.capacity = capacity
+        self.department = 0
 
     def __str__(self):
         return str(self.id) + " " + str(self.capacity)
@@ -51,6 +49,7 @@ class Course:
         self.students = []
         self.period = 0
         self.room = 0
+        self.department = 0
 
     def __str__(self):
         return str(self.id) + "\t" + str(self.room) + "\t" + str(self.teacher) + "\t" + str(self.period) #+ "\t" + str(self.students)
@@ -95,17 +94,33 @@ def calculateScore(students):
         3 : 0,
         4 : 0
     }
+    scoresByPreference    = {}
+    maxScoresByPreference = {}
 
-    for student in students:
-        maxScoresByYear[student.classYear] += len(student.prefs)
-        for course in student.coursesAssigned:
-            if course.id in student.prefs:
-                scoresByYear[student.classYear] += 1
+
+    if extension == 3:
+
+        for student in students:
+            maxScoresByYear[student.classYear] += sum(range(len(student.prefs) + 1))
+            for i in range(1, len(student.prefs) + 1):
+                maxScoresByPreference[i] = maxScoresByPreference.get(i, 0) + 1
+            for course in student.coursesAssigned:
+                if course.id in student.prefs:
+                    idx = student.prefs.index(course.id)
+                    ranking = len(student.prefs) - idx
+                    scoresByYear[student.classYear] += 1 * ranking
+                    scoresByPreference[idx + 1] = scoresByPreference.get(idx + 1, 0) + 1
+    else:
+        for student in students:
+            maxScoresByYear[student.classYear] += len(student.prefs)
+            for course in student.coursesAssigned:
+                if course.id in student.prefs:
+                    scoresByYear[student.classYear] += 1
 
     score = sum(scoresByYear.values())
     maxScore = sum(maxScoresByYear.values())
 
-    return score, maxScore, scoresByYear, maxScoresByYear
+    return score, maxScore, scoresByYear, maxScoresByYear, scoresByPreference, maxScoresByPreference
 
 
 
@@ -279,11 +294,11 @@ if __name__=='__main__':
     rooms.sort(key = lambda r: -r.capacity)
 
 
-    print("\n")
-    print("Num courses: %i" % len(courses))
-    print("Num rooms: %i" % len(rooms))
-    print("Num students: %i" % len(students))
-    print("\n")
+    # print("\n")
+    # print("Num courses: %i" % len(courses))
+    # print("Num rooms: %i" % len(rooms))
+    # print("Num students: %i" % len(students))
+    # print("\n")
 
 
     ######## Extensions processing ########
@@ -309,14 +324,21 @@ if __name__=='__main__':
 
 
     if extension == 2:
-        print("\n#### Office Hour Extension: ####")
+        # print("\n#### Office Hour Extension: ####")
 
-        length = 1
-        numDays = 2
+        length = extArg1
+        numDays = extArg2
+        print(length*numDays)
         sep = lambda x: (x,x+length)
         tfList = [True if i < numDays else False for i in range(5)]
-        officeHours = {t:Period(-t, *sep(random.randint(8, 20)), random.sample(tfList, k=5)) for t in teachers}
+        officeHours = {t:Period(-t, *sep(random.randint(8, 10)), random.sample(tfList, k=5)) for t in teachers}
 
+    if extension == 5:
+        numDepartments = 20
+        for course in courses:
+            course.department = random.randint(1, numDepartments)
+        for room in rooms:
+            room.department = random.randint(1, numDepartments)
 
 
     ######## Assign each class in classes to a time slot ########
@@ -353,52 +375,37 @@ if __name__=='__main__':
                   p.courses += [course]
                   break
 
-
-    for period in periods:
-        bigC = period.courses       #The list of classes in the period
-        for i in range(len(bigC)):
-            room = rooms[i].id
-            course = courseLookup[bigC[i].id]
-            course.room = room
+    if extension == 5:
+        buildings = {i:[] for i in range(1, numDepartments + 1)}
+        for room in rooms:
+            buildings[room.department].append(room)
+        for period in periods:
+            overflow = []
+            bigC = period.courses
+            remainingRooms = rooms.copy()
+            indices = {i:0 for i in range(1, numDepartments + 1)}
+            for i in range(len(bigC)):
+                try:
+                    bigC[i].room = buildings[bigC[i].department][indices[bigC[i].department]].id
+                    remainingRooms.remove(buildings[bigC[i].department][indices[bigC[i].department]])
+                    indices[bigC[i].department] += 1
+                except IndexError:
+                    overflow.append(bigC[i])
+            for i in range(len(overflow)):
+                room = remainingRooms[i].id
+                course = overflow[i]
+                course.room = room
+    else:
+        for period in periods:
+            bigC = period.courses       #The list of classes in the period
+            for i in range(len(bigC)):
+                room = rooms[i].id
+                course = courseLookup[bigC[i].id]
+                course.room = room
 
     # print(periods)
 
-
-    # For each student s in S:
-    #     For each course c in s's course list:
-    #         Let r and t be the room and time to which c is assigned
-    #         If the number of students assigned to c is less than r capacity and s is not already assigned to another course in t:
-    #             Assign s to c (both ways)
-    # print(students)
-
-    ###### EXTENSIONS 3 & 4 #####
-    '''
-    ### Student Prefs Rank
-    if extension == 3:
-        print("\n\n#### Priority by Student Preferences Rank Extension: ####")
-        # Sorts student.prefs by student.prefsRank
-        for student in students:
-            zip_prefs_prefsRank = zip(student.prefsRank, student.prefs)
-            zip_prefs_prefsRank.sort()
-            student.prefs = [prefs for prefsRank, prefs in zip_prefs_prefsRank]
-
-        # Now assign only the first student.prefs, pop prefs from list and move to next student.
-        for i in range(1,8): # 7 is the max number of selected courses
-            for student in students:
-                try:
-                    course = map(i, student.prefs):
-                    if course.period == 0:
-                        continue
-                    room = roomLookup[course.room] # room of c
-                    period = course.period # period of c
-                    if ((len(course.students) < room.capacity) and (not (period in busyPeriods))):
-                        course.students.append(student)         # for Course object
-                        student.coursesAssigned.append(course)  # for Student object
-                        student.busyPeriods.append(course.period)
-                except:
-                    continue
-    # '''
-
+    ###### EXTENSION 4 #####
     ### Student Assignment by Class Year
     if extension == 4:
         print("\n#### Priority by Seniority Extension: ####")
@@ -420,17 +427,20 @@ if __name__=='__main__':
                 student.coursesAssigned.append(course)  # for Student object
                 busyPeriods.append(course.period)
 
-    # for s in students:
-    # for c in courses:
-    #     print(c.students)
 
     print("####")
-    score, maxScore, scoresByYear, maxScoresByYear = calculateScore(students)
-    print("Senior score is:    {}/{} = {}%".format(scoresByYear[4], maxScoresByYear[4], "%.1f" % (scoresByYear[4]/maxScoresByYear[4] * 100)))
-    print("Junior score is:    {}/{} = {}%".format(scoresByYear[3], maxScoresByYear[3], "%.1f" % (scoresByYear[3]/maxScoresByYear[3] * 100)))
-    print("Sophomore score is: {}/{} = {}%".format(scoresByYear[2], maxScoresByYear[2], "%.1f" % (scoresByYear[2]/maxScoresByYear[2] * 100)))
-    print("Freshman score is:  {}/{} = {}%".format(scoresByYear[1], maxScoresByYear[1], "%.1f" % (scoresByYear[1]/maxScoresByYear[1] * 100)))
-    print('')
+    score, maxScore, scoresByYear, maxScoresByYear, scoresByPreference, maxScoresByPreference = calculateScore(students)
+    if extension == 4:
+        print("Senior score is:    {}/{} = {}%".format(scoresByYear[4], maxScoresByYear[4], "%.1f" % (scoresByYear[4]/maxScoresByYear[4] * 100)))
+        print("Junior score is:    {}/{} = {}%".format(scoresByYear[3], maxScoresByYear[3], "%.1f" % (scoresByYear[3]/maxScoresByYear[3] * 100)))
+        print("Sophomore score is: {}/{} = {}%".format(scoresByYear[2], maxScoresByYear[2], "%.1f" % (scoresByYear[2]/maxScoresByYear[2] * 100)))
+        print("Freshman score is:  {}/{} = {}%".format(scoresByYear[1], maxScoresByYear[1], "%.1f" % (scoresByYear[1]/maxScoresByYear[1] * 100)))
+        print('')
+    if extension == 3:
+        for k in maxScoresByPreference.keys():
+            # print("%.4f" % (scoresByPreference.get(k, 0)/maxScoresByPreference[k]), sep='    ', end='\t', flush=True)
+            print("Preference Rank {} score is: {}/{} = {}%".format(k, scoresByPreference[k], maxScoresByPreference[k], "%.1f" % (scoresByPreference[k]/maxScoresByPreference[k] * 100)))
+        print('')
     print("TOTAL score is:     {}/{} = {}%".format(score, maxScore, "%.1f" % (score/maxScore * 100)))
     print("####")
 
